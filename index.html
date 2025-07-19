@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Game Card - NFC Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            width: 350px;
+            height: 500px;
+        }
+
+        .game-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .card-container:hover .game-card {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .card-front {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53, #ff6b9d);
+            background-size: 400% 400%;
+            animation: gradientShift 3s ease infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px;
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            color: white;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card-header {
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .character-art {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .nfc-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .nfc-symbol {
+            font-size: 20px;
+            color: white;
+        }
+
+        .card-back h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .nfc-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .nfc-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nfc-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nfc-button:active {
+            transform: translateY(0);
+        }
+
+        .game-info {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            color: white;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container" id="cardContainer">
+        <div class="game-card">
+            <div class="card-front">
+                <div class="nfc-indicator">
+                    <span class="nfc-symbol">📡</span>
+                </div>
+                
+                <div class="card-header">
+                    <h1 class="card-title">CYBER KNIGHT</h1>
+                    <p class="card-subtitle">Digital Warrior</p>
+                </div>
+                
+                <div class="character-art">
+                    🛡️
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-label">Attack</div>
+                        <div class="stat-value">850</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Defense</div>
+                        <div class="stat-value">720</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Speed</div>
+                        <div class="stat-value">640</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value">42</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-back">
+                <h2>NFC Game Link</h2>
+                
+                <div class="nfc-actions">
+                    <button class="nfc-button" onclick="simulateNFC('scan')">📱 Scan Card</button>
+                    <button class="nfc-button" onclick="simulateNFC('battle')">⚔️ Quick Battle</button>
+                    <button class="nfc-button" onclick="simulateNFC('trade')">🔄 Trade Card</button>
+                    <button class="nfc-button" onclick="simulateNFC('upgrade')">⭐ Upgrade</button>
+                </div>
+                
+                <div class="game-info">
+                    <p>Tap your device to this card to activate special abilities in compatible games!</p>
+                    <p style="margin-top: 10px; font-size: 12px;">Card ID: CK-2024-042</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <span>NFC Status:</span>
+        <div class="status-indicator"></div>
+        <span>Connected</span>
+        <button class="control-button" onclick="resetCard()">Reset</button>
+        <button class="control-button" onclick="toggleAnimation()">Animation</button>
+    </div>
+
+    <script>
+        let animationsEnabled = true;
+        let cardFlipped = false;
+
+        function simulateNFC(action) {
+            const messages = {
+                scan: "🔍 Card scanned! Cyber Knight data loaded into game.",
+                battle: "⚔️ Initiating quick battle mode with Cyber Knight!",
+                trade: "🔄 Opening trade interface for Cyber Knight...",
+                upgrade: "⭐ Upgrade menu opened. Current level: 42"
+            };
+            
+            // Create notification
+            showNotification(messages[action]);
+            
+            // Add visual feedback
+            const card = document.querySelector('.game-card');
+            card.style.transform += ' scale(1.05)';
+            setTimeout(() => {
+                card.style.transform = card.style.transform.replace(' scale(1.05)', '');
+            }, 200);
+        }
+
+        function showNotification(message) {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-size: 14px;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+                animation: slideInOut 3s ease-in-out forwards;
+            `;
+            
+            // Add animation keyframes
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideInOut {
+                        0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                        15%, 85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                        100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        function resetCard() {
+            const card = document.querySelector('.game-card');
+            const container = document.querySelector('.card-container');
+            
+            // Reset flip state
+            card.style.transform = '';
+            cardFlipped = false;
+            
+            showNotification("🔄 Card reset to default state");
+        }
+
+        function toggleAnimation() {
+            animationsEnabled = !animationsEnabled;
+            const card = document.querySelector('.card-front');
+            
+            if (animationsEnabled) {
+                card.style.animation = 'gradientShift 3s ease infinite';
+                document.querySelector('.character-art').style.animation = 'float 3s ease-in-out infinite';
+                showNotification("✨ Animations enabled");
+            } else {
+                card.style.animation = 'none';
+                document.querySelector('.character-art').style.animation = 'none';
+                showNotification("⏸️ Animations disabled");
+            }
+        }
+
+        // Add click to flip functionality
+        document.querySelector('.card-container').addEventListener('click', function() {
+            cardFlipped = !cardFlipped;
+        });
+
+        // Add keyboard controls
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    document.querySelector('.card-container').click();
+                    break;
+                case 'r':
+                case 'R':
+                    resetCard();
+                    break;
+                case 'a':
+                case 'A':
+                    toggleAnimation();
+                    break;
+            }
+        });
+
+        // Initialize with welcome message
+        setTimeout(() => {
+            showNotification("🎮 Welcome! Hover or tap the card to explore NFC features");
+        }, 500);
+    </script>
+</body>
+</html>
