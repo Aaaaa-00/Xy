@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameWallet - NFC Digital Wallet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .balance-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .game-points {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .nfc-section {
+            margin-bottom: 25px;
+        }
+
+        .nfc-button {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nfc-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .nfc-button.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        .nfc-icon {
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .game-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .game-icon {
+            margin-right: 10px;
+            font-size: 1.3em;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #4ecdc4;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .transaction-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .transaction-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            color: #4ecdc4;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-connected { background: #4ecdc4; }
+        .status-disconnected { background: #ff6b6b; }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">GameWallet</div>
+            <div class="subtitle">NFC Digital Gaming Wallet</div>
+        </div>
+
+        <div class="balance-card">
+            <div class="balance-label">Wallet Balance</div>
+            <div class="balance-amount">$247.83</div>
+            <div class="game-points">🎮 12,450 Game Points | ⭐ Level 28</div>
+        </div>
+
+        <div class="nfc-section">
+            <button class="nfc-button" id="nfcBtn">
+                <span class="nfc-icon">📡</span>
+                <span id="nfcText">Tap to Enable NFC</span>
+                <span class="status-indicator status-disconnected" id="nfcStatus"></span>
+            </button>
+        </div>
+
+        <div class="quick-actions">
+            <button class="action-btn" onclick="addFunds()">💳 Add Funds</button>
+            <button class="action-btn" onclick="sendMoney()">💸 Send Money</button>
+            <button class="action-btn" onclick="buyGameItems()">🛒 Buy Items</button>
+            <button class="action-btn" onclick="viewRewards()">🎁 Rewards</button>
+        </div>
+
+        <div class="game-section">
+            <div class="game-title">
+                <span class="game-icon">🎮</span>
+                Connected Games
+            </div>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Active Games</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">$89.20</div>
+                    <div class="stat-label">Game Spending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-section">
+            <div class="game-title">Recent Transactions</div>
+            <div class="transaction-list" id="transactions">
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-type">🎮 Apex Legends - Battle Pass</div>
+                        <div class="transaction-time">2 hours ago</div>
+                    </div>
+                    <div class="transaction-amount">-$9.99</div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-type">💰 Wallet Top-up</div>
+                        <div class="transaction-time">1 day ago</div>
+                    </div>
+                    <div class="transaction-amount">+$50.00</div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-type">🏆 Tournament Reward</div>
+                        <div class="transaction-time">3 days ago</div>
+                    </div>
+                    <div class="transaction-amount">+$25.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Secure NFC Gaming Payments • Protected by 256-bit encryption
+        </div>
+    </div>
+
+    <script>
+        let nfcEnabled = false;
+        let balance = 247.83;
+        let gamePoints = 12450;
+
+        const nfcBtn = document.getElementById('nfcBtn');
+        const nfcText = document.getElementById('nfcText');
+        const nfcStatus = document.getElementById('nfcStatus');
+
+        nfcBtn.addEventListener('click', toggleNFC);
+
+        function toggleNFC() {
+            nfcEnabled = !nfcEnabled;
+            
+            if (nfcEnabled) {
+                nfcBtn.classList.add('active');
+                nfcText.textContent = 'NFC Active - Ready to Pay';
+                nfcStatus.className = 'status-indicator status-connected';
+                
+                // Simulate NFC scanning
+                setTimeout(() => {
+                    if (nfcEnabled) {
+                        simulatePayment();
+                    }
+                }, 3000);
+            } else {
+                nfcBtn.classList.remove('active');
+                nfcText.textContent = 'Tap to Enable NFC';
+                nfcStatus.className = 'status-indicator status-disconnected';
+            }
+        }
+
+        function simulatePayment() {
+            const amount = (Math.random() * 20 + 5).toFixed(2);
+            const games = ['Fortnite', 'Valorant', 'Apex Legends', 'CS:GO', 'League of Legends'];
+            const game = games[Math.floor(Math.random() * games.length)];
+            
+            // Update balance
+            balance -= parseFloat(amount);
+            gamePoints += Math.floor(parseFloat(amount) * 10);
+            
+            // Update UI
+            updateBalance();
+            addTransaction(`🎮 ${game} - In-game Purchase`, `-$${amount}`);
+            
+            // Show success feedback
+            nfcText.textContent = `Payment Successful! -$${amount}`;
+            setTimeout(() => {
+                nfcText.textContent = 'NFC Active - Ready to Pay';
+            }, 2000);
+        }
+
+        function updateBalance() {
+            document.querySelector('.balance-amount').textContent = `$${balance.toFixed(2)}`;
+            document.querySelector('.game-points').innerHTML = `🎮 ${gamePoints.toLocaleString()} Game Points | ⭐ Level ${Math.floor(gamePoints/500)}`;
+        }
+
+        function addTransaction(type, amount) {
+            const transactionsList = document.getElementById('transactions');
+            const newTransaction = document.createElement('div');
+            newTransaction.className = 'transaction-item';
+            newTransaction.innerHTML = `
+                <div class="transaction-info">
+                    <div class="transaction-type">${type}</div>
+                    <div class="transaction-time">Just now</div>
+                </div>
+                <div class="transaction-amount">${amount}</div>
+            `;
+            
+            transactionsList.insertBefore(newTransaction, transactionsList.firstChild);
+            
+            // Remove oldest transaction if more than 5
+            if (transactionsList.children.length > 5) {
+                transactionsList.removeChild(transactionsList.lastChild);
+            }
+        }
+
+        function addFunds() {
+            const amount = prompt('Enter amount to add:');
+            if (amount && !isNaN(amount)) {
+                balance += parseFloat(amount);
+                updateBalance();
+                addTransaction('💰 Wallet Top-up', `+$${parseFloat(amount).toFixed(2)}`);
+            }
+        }
+
+        function sendMoney() {
+            const amount = prompt('Enter amount to send:');
+            if (amount && !isNaN(amount) && parseFloat(amount) <= balance) {
+                balance -= parseFloat(amount);
+                updateBalance();
+                addTransaction('💸 Money Transfer', `-$${parseFloat(amount).toFixed(2)}`);
+            } else if (parseFloat(amount) > balance) {
+                alert('Insufficient balance!');
+            }
+        }
+
+        function buyGameItems() {
+            const items = [
+                { name: 'Legendary Skin', price: 19.99 },
+                { name: 'Weapon Pack', price: 14.99 },
+                { name: 'Battle Pass', price: 9.99 },
+                { name: 'Loot Box x5', price: 4.99 }
+            ];
+            
+            const item = items[Math.floor(Math.random() * items.length)];
+            
+            if (balance >= item.price) {
+                balance -= item.price;
+                gamePoints += item.price * 15;
+                updateBalance();
+                addTransaction(`🛒 ${item.name}`, `-$${item.price.toFixed(2)}`);
+            } else {
+                alert('Insufficient balance!');
+            }
+        }
+
+        function viewRewards() {
+            const rewards = [
+                '🎁 Daily Login Bonus: +100 points',
+                '🏆 Weekly Challenge: +500 points',
+                '💎 Premium Reward: Exclusive skin',
+                '🎮 Achievement unlock: +250 points'
+            ];
+            
+            const reward = rewards[Math.floor(Math.random() * rewards.length)];
+            alert(`Reward claimed: ${reward}`);
+            
+            gamePoints += Math.floor(Math.random() * 300 + 100);
+            updateBalance();
+        }
+
+        // Auto-refresh transactions every 30 seconds
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                const activities = [
+                    '🎮 Daily Quest Reward',
+                    '💰 Cashback Earned',
+                    '🏆 Tournament Entry',
+                    '⭐ Level Up Bonus'
+                ];
+                const activity = activities[Math.floor(Math.random() * activities.length)];
+                const amount = (Math.random() * 10 + 1).toFixed(2);
+                
+                if (activity.includes('Reward') || activity.includes('Cashback') || activity.includes('Bonus')) {
+                    balance += parseFloat(amount);
+                    addTransaction(activity, `+$${amount}`);
+                } else {
+                    if (balance >= parseFloat(amount)) {
+                        balance -= parseFloat(amount);
+                        addTransaction(activity, `-$${amount}`);
+                    }
+                }
+                updateBalance();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
